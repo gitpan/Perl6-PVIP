@@ -1,0 +1,47 @@
+---
+abstract: 'Perl5 bindings for pvip'
+author:
+  - 'tokuhirom <tokuhirom@gmail.com>'
+build_requires:
+  Test::More: 0.98
+configure_requires:
+  CPAN::Meta: 0
+  CPAN::Meta::Prereqs: 0
+  Module::Build: 0.38
+dynamic_config: 0
+generated_by: 'Minilla/v0.5.6, CPAN::Meta::Converter version 2.131560'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: Perl6-PVIP
+no_index:
+  directory:
+    - t
+    - xt
+    - inc
+    - share
+    - eg
+    - examples
+    - author
+    - builder
+provides:
+  Perl6::PVIP:
+    file: lib/Perl6/PVIP.pm
+    version: 0.01
+requires:
+  perl: 5.008005
+resources:
+  bugtracker: https://github.com/tokuhirom/Perl6-PVIP/issues
+  homepage: https://github.com/tokuhirom/Perl6-PVIP
+  repository: git://github.com/tokuhirom/Perl6-PVIP.git
+version: 0.01
+x_contributors:
+  - '_why <why@whytheluckystiff.net>'
+  - 'nddrylliog <nddrylliog@gmail.com>'
+  - 'Onne Gorter <onne@onnlucky.com>'
+  - 'Ali Rantakari <visit-with-web-browser@hasseg.org>'
+  - 'Steve White <swhite@lekkerste.local>'
+  - 'Amos Wenger <amos@official.fm>'
+  - 'Reini Urban <rurban@cpanel.net>'
+  - 'Amos Wenger <amos@lockfree.ch>'
