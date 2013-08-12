@@ -113,15 +113,16 @@ statementlist =
             }
         )* eat_terminator?
     )
+    | ws+ { $$=NOP(); }
 
 # TODO
 statement =
         - (
-              use_stmt
+              while_stmt
+            | use_stmt
             | enum_stmt
             | if_stmt
             | for_stmt
-            | while_stmt
             | unless_stmt
             | module_stmt
             | multi_method_stmt
@@ -147,6 +148,7 @@ normal_or_postfix_stmt =
           ( ' '+ 'if' - cond_if:expr - eat_terminator ) { $$ = PVIP_node_new_children2(PVIP_NODE_IF, cond_if, n); }
         | ( ' '+ 'unless' - cond_unless:expr - eat_terminator ) { $$ = PVIP_node_new_children2(PVIP_NODE_UNLESS, cond_unless, n); }
         | ( ' '+ 'for' - cond_for:expr - eat_terminator ) { $$ = PVIP_node_new_children2(PVIP_NODE_FOR, cond_for, n); }
+        | ( ' '+ 'while' - cond_for:expr - eat_terminator ) { $$ = PVIP_node_new_children2(PVIP_NODE_WHILE, cond_for, n); }
         | ( - eat_terminator ) { $$=n; }
     )
 
@@ -200,20 +202,25 @@ pkg_name = < [a-zA-Z] [a-zA-Z0-9]* ( '::' [a-zA-Z0-9]+ )* > {
 
 die_stmt = 'die' ws e:expr eat_terminator { $$ = PVIP_node_new_children1(PVIP_NODE_DIE, e); }
 
-while_stmt = 'while' ws+ cond:expr - '{' - body:statementlist - '}' {
-            $$ = PVIP_node_new_children2(PVIP_NODE_WHILE, cond, body);
+while_stmt = { body=NULL; } 'while' - cond:expr - '{' - body:statementlist? - '}' {
+            $$ = PVIP_node_new_children2(PVIP_NODE_WHILE, cond, MAYBE(body));
         }
 
 for_stmt =
     'for' - src:expr - '{' - body:statementlist - '}' { $$ = PVIP_node_new_children2(PVIP_NODE_FOR, src, body); }
     | 'for' - src:expr - body:lambda { $$ = PVIP_node_new_children2(PVIP_NODE_FOR, src, body); }
 
-unless_stmt = 'unless' - cond:expr - '{' - body:statementlist - '}' {
-            $$ = PVIP_node_new_children2(PVIP_NODE_UNLESS, cond, body);
+unless_stmt = 
+        { body=NULL; } 'unless' - cond:expr - '{' - body:statementlist? - '}' {
+            $$ = PVIP_node_new_children2(PVIP_NODE_UNLESS, cond, MAYBE(body));
+        }
+        # workaround for `unless Mu { }`
+        | { body=NULL; } 'unless' - cond:ident - '{' - body:statementlist? - '}' {
+            $$ = PVIP_node_new_children2(PVIP_NODE_UNLESS, cond, MAYBE(body));
         }
 
-if_stmt = 'if' - if_cond:expr - '{' - if_body:statementlist - '}' {
-            $$ = PVIP_node_new_children2(PVIP_NODE_IF, if_cond, if_body);
+if_stmt = { if_body=NULL; } 'if' - if_cond:expr - '{' - if_body:statementlist? - '}' {
+            $$ = PVIP_node_new_children2(PVIP_NODE_IF, if_cond, MAYBE(if_body));
             if_cond=$$;
         }
         (
@@ -365,7 +372,7 @@ funcall =
     !reserved i:ident - a:paren_args {
         $$ = PVIP_node_new_children2(PVIP_NODE_FUNCALL, i, a);
     }
-    | !reserved i:ident ws+ a:bare_args {
+    | !reserved i:ident ws+ !'{' a:bare_args {
         $$ = PVIP_node_new_children2(PVIP_NODE_FUNCALL, i, a);
     }
 
@@ -610,11 +617,12 @@ twvars =
     | '$*CWD' { $$ = PVIP_node_new_children(PVIP_NODE_TW_CWD); }
     | '$*EXECUTABLE_NAME' { $$ = PVIP_node_new_children(PVIP_NODE_TW_EXECUTABLE_NAME); }
     | '&?ROUTINE' { $$ = PVIP_node_new_children(PVIP_NODE_TW_ROUTINE); }
+    | '%*ENV' { $$ = PVIP_node_new_children(PVIP_NODE_TW_ENV); }
 
 language =
     ':lang<' < [a-zA-Z0-9]+ > '>' { $$ = PVIP_node_new_string(PVIP_NODE_LANG, yytext, yyleng); }
 
-reserved = ( 'role' | 'class' | 'try' | 'has' | 'sub' | 'cmp' | 'enum' ) ![-A-Za-z0-9]
+reserved = ( 'my' | 'our' | 'while' | 'unless' | 'if' | 'role' | 'class' | 'try' | 'has' | 'sub' | 'cmp' | 'enum' ) ![-A-Za-z0-9]
 
 role =
     'role' ws+ i:ident - b:block { $$ = PVIP_node_new_children1(PVIP_NODE_ROLE, b); }
@@ -685,6 +693,7 @@ qw_item = < [^ >\n]+ > { $$ = PVIP_node_new_string(PVIP_NODE_STRING, yytext, yyl
 # TODO optimize
 funcdef =
     'my' ws - f:funcdef { $$ = PVIP_node_new_children1(PVIP_NODE_MY, f); }
+    | 'our' ws - f:funcdef { $$ = PVIP_node_new_children1(PVIP_NODE_OUR, f); }
     | 'sub' { p=NULL; e=NULL; } ws+ i:ident - '(' - p:params? - ')' - e:is_exportable? - b:block {
         if (!p) {
             p = PVIP_node_new_children(PVIP_NODE_PARAMS);
@@ -749,7 +758,7 @@ block =
 
 # XXX optimizable
 array =
-    '[' e:expr ']' {
+    '[' - e:expr - ']' {
         if (PVIP_node_category(e->type) == PVIP_CATEGORY_CHILDREN) {
             PVIP_node_change_type(e, PVIP_NODE_ARRAY);
             $$=e;

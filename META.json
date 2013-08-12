@@ -53,7 +53,7 @@
    "provides" : {
       "Perl6::PVIP" : {
          "file" : "lib/Perl6/PVIP.pm",
-         "version" : "0.01"
+         "version" : "0.02"
       }
    },
    "release_status" : "stable",
@@ -67,7 +67,7 @@
          "web" : "https://github.com/tokuhirom/Perl6-PVIP"
       }
    },
-   "version" : "0.01",
+   "version" : "0.02",
    "x_contributors" : [
       "_why <why@whytheluckystiff.net>",
       "nddrylliog <nddrylliog@gmail.com>",

@@ -80,8 +80,12 @@ pvip/t/24_methodcall.t
 pvip/t/25_string.t
 pvip/t/26_pair.t
 pvip/t/27_vargs.t
+pvip/t/28_empty_body.t
+pvip/t/29_while.t
+pvip/t/30_array.t
 pvip/t/999_regression/001_isa_ok.t
 pvip/t/999_regression/002_expmod.t
+pvip/t/999_regression/003_mu.t
 pvip/t/ParserTest.pm
 pvip/t/lib/Data/SExpression/Lite.pm
 pvip/t/sexp.t
