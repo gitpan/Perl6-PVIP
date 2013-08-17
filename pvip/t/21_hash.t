@@ -18,3 +18,15 @@ $e<ook?>
 $e<ook.>
 --- expected
 (statements (atkey (variable "$e") (string "ook.")))
+
+===
+--- code
+{a => 1}.keys
+--- expected
+(statements (methodcall (hash (pair (string "a") (int 1))) (ident "keys")))
+
+===
+--- code
+[{a => 1}.keys]
+--- expected
+(statements (array (methodcall (hash (pair (string "a") (int 1))) (ident "keys"))))

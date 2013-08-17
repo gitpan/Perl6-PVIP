@@ -83,6 +83,11 @@ pvip/t/27_vargs.t
 pvip/t/28_empty_body.t
 pvip/t/29_while.t
 pvip/t/30_array.t
+pvip/t/31_range.t
+pvip/t/32_sub.t
+pvip/t/33_rand.t
+pvip/t/34_item_assignment_right.t
+pvip/t/35_end.t
 pvip/t/999_regression/001_isa_ok.t
 pvip/t/999_regression/002_expmod.t
 pvip/t/999_regression/003_mu.t

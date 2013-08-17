@@ -114,12 +114,10 @@ typedef enum {
     PVIP_NODE_TRY,
     PVIP_NODE_REF,
     PVIP_NODE_MULTI,
-    PVIP_NODE_LANG,
     PVIP_NODE_UNARY_BOOLEAN, /* ? */
     PVIP_NODE_UNARY_UPTO, /* ^ */
     PVIP_NODE_STDOUT, /* $*OUT */
     PVIP_NODE_STDERR, /* $*ERR */
-    PVIP_NODE_INFINITY, /* * in `1..*` */
     PVIP_NODE_SCALAR_DEREF, /* $$var */
     PVIP_NODE_TW_INC, /* @*INC */
     PVIP_NODE_META_METHOD_CALL, /* $foo.^methods */
@@ -170,6 +168,10 @@ typedef enum {
     PVIP_NODE_VARGS, /* sub foo (*@a) { } */
     PVIP_NODE_WHATEVER, /* * */
     PVIP_NODE_TW_ENV, /* %*ENV */
+    PVIP_NODE_ARRAY_DEREF, /* @$v */
+    PVIP_NODE_RAND, /* rand */
+    PVIP_NODE_END, /* END { } */
+    PVIP_NODE_BEGIN, /* BEGIN { } */
 } PVIP_node_type_t;
 
 typedef enum {

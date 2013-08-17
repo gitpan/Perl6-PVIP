@@ -24,7 +24,7 @@ __END__
 --- code
 :lang<perl5>
 --- expected
-(statements (lang "perl5"))
+(statements (pair (string "lang") (string "perl5")))
 
 ===
 --- code
@@ -43,12 +43,6 @@ q{a'}
 q|a'|
 --- expected
 (statements (string "a'"))
-
-===
---- code
-1..*
---- expected
-(statements (range (int 1) (infinity)))
 
 ===
 --- code

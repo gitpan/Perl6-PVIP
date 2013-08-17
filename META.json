@@ -4,7 +4,7 @@
       "tokuhirom <tokuhirom@gmail.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Minilla/v0.5.6",
+   "generated_by" : "Minilla/v0.6.1",
    "license" : "perl_5",
    "meta-spec" : {
       "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
@@ -53,7 +53,7 @@
    "provides" : {
       "Perl6::PVIP" : {
          "file" : "lib/Perl6/PVIP.pm",
-         "version" : "0.02"
+         "version" : "0.03"
       }
    },
    "release_status" : "stable",
@@ -67,7 +67,7 @@
          "web" : "https://github.com/tokuhirom/Perl6-PVIP"
       }
    },
-   "version" : "0.02",
+   "version" : "0.03",
    "x_contributors" : [
       "_why <why@whytheluckystiff.net>",
       "nddrylliog <nddrylliog@gmail.com>",
