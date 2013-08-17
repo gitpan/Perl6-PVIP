@@ -28,14 +28,14 @@ no_index:
 provides:
   Perl6::PVIP:
     file: lib/Perl6/PVIP.pm
-    version: 0.03
+    version: 0.04
 requires:
   perl: 5.008005
 resources:
   bugtracker: https://github.com/tokuhirom/Perl6-PVIP/issues
   homepage: https://github.com/tokuhirom/Perl6-PVIP
   repository: git://github.com/tokuhirom/Perl6-PVIP.git
-version: 0.03
+version: 0.04
 x_contributors:
   - '_why <why@whytheluckystiff.net>'
   - 'nddrylliog <nddrylliog@gmail.com>'
