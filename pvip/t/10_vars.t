@@ -5,13 +5,13 @@ __END__
 --- code
 my ($k, $v);
 --- expected
-(statements (my (list (variable "$k") (variable "$v"))))
+(statements (my (nop) (list (variable "$k") (variable "$v"))))
 
 ===
 --- code
 my ($k, $v) = (1,2);
 --- expected
-(statements (bind (my (list (variable "$k") (variable "$v"))) (list (int 1) (int 2))))
+(statements (list_assignment (my (list (variable "$k") (variable "$v"))) (list (int 1) (int 2))))
 
 ===
 --- code
@@ -81,6 +81,12 @@ $/
 
 ===
 --- code
+$*OSVER
+--- expected
+(statements (tw_osver))
+
+===
+--- code
 $*OS
 --- expected
 (statements (tw_os))
@@ -125,10 +131,29 @@ $*EXECUTABLE_NAME
 --- code
 $!x
 --- expected
-(statements (public_attribute "x"))
+(statements (attribute_variable "$!x"))
 
 ===
 --- code
 $.x
 --- expected
-(statements (private_attribute "x"))
+(statements (attribute_variable "$.x"))
+
+===
+--- code
+$^a
+--- expected
+(statements (tw_a))
+
+=== S03-binding/attributes.t
+--- code
+our $.x
+--- expected
+(statements (our (attribute_variable "$.x")))
+
+=== S03-binding/attributes.t
+--- code
+has $x
+--- expected
+(statements (has (variable "$x")))
+

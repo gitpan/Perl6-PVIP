@@ -9,6 +9,8 @@
 extern "C" {
 #endif
 
+#define PVIP_VERSION_STRING "0.1.0"
+
 #define PVIP_FALSE 0
 #define PVIP_TRUE  1
 
@@ -128,8 +130,7 @@ typedef enum {
     PVIP_NODE_TRUE,
     PVIP_NODE_TW_VM,  /* $*VM */
     PVIP_NODE_HAS,
-    PVIP_NODE_PRIVATE_ATTRIBUTE, /* $.var */
-    PVIP_NODE_PUBLIC_ATTRIBUTE,  /* $!var */
+    PVIP_NODE_ATTRIBUTE_VARIABLE,  /* $!var, $.var, @.var */
     PVIP_NODE_FUNCREF,           /* &var */
     PVIP_NODE_PATH, /* qp{}, IO::Path literal */
     PVIP_NODE_TW_PACKAGE, /* $?PACKAGE */
@@ -176,6 +177,16 @@ typedef enum {
     PVIP_NODE_NOT_DIVISIBLE_BY, /* !%% */
     PVIP_NODE_CONTAINER_IDENTITY, /* =:= */
     PVIP_NODE_Z, /* Z operator */
+    PVIP_NODE_SUBMETHOD, /* submethod */
+    PVIP_NODE_BINDAND_MAKE_READONLY, /* ::= */
+    PVIP_NODE_LIST_ASSIGNMENT, /* = */
+    PVIP_NODE_TW_A, /* $^a */
+    PVIP_NODE_TW_B, /* $^b */
+    PVIP_NODE_TW_C, /* $^c */
+    PVIP_NODE_SO, /* so */
+    PVIP_NODE_GCD, /* gcd */
+    PVIP_NODE_KEEP, /* KEEP */
+    PVIP_NODE_UNDO, /* UNDO */
 } PVIP_node_type_t;
 
 typedef enum {
@@ -194,6 +205,7 @@ typedef struct {
 
 typedef struct _PVIPNode {
     PVIP_node_type_t type;
+    int line_number;
     union {
         int64_t iv;
         double nv;
@@ -216,29 +228,9 @@ const char* PVIP_node_name(PVIP_node_type_t t);
 PVIP_category_t PVIP_node_category(PVIP_node_type_t type);
 void PVIP_node_as_sexp(PVIPNode * node, PVIPString *buf);
 
-/* node */
-PVIPNode* PVIP_node_new_children(PVIP_node_type_t type);
-PVIPNode* PVIP_node_new_children1(PVIP_node_type_t type, PVIPNode* n1);
-PVIPNode* PVIP_node_new_children2(PVIP_node_type_t type, PVIPNode* n1, PVIPNode *n2);
-PVIPNode* PVIP_node_new_children3(PVIP_node_type_t type, PVIPNode* n1, PVIPNode *n2, PVIPNode *n3);
-PVIPNode* PVIP_node_new_children4(PVIP_node_type_t type, PVIPNode* n1, PVIPNode *n2, PVIPNode *n3, PVIPNode *n4);
-PVIPNode* PVIP_node_new_int(PVIP_node_type_t type, int64_t n);
-PVIPNode* PVIP_node_new_intf(PVIP_node_type_t type, const char *str, size_t len, int base);
-PVIPNode* PVIP_node_new_string(PVIP_node_type_t type, const char* str, size_t len);
-PVIPNode* PVIP_node_new_number(PVIP_node_type_t type, const char *str, size_t len);
-
-void PVIP_node_push_child(PVIPNode* node, PVIPNode* child);
-
-PVIPNode* PVIP_node_append_string(PVIPNode *node, const char* str, size_t len);
-PVIPNode* PVIP_node_append_string_from_hex(PVIPNode * node, const char *str, size_t len);
-PVIPNode* PVIP_node_append_string_from_oct(PVIPNode * node, const char *str, size_t len);
-PVIPNode* PVIP_node_append_string_from_dec(PVIPNode * node, const char *str, size_t len);
-PVIPNode* PVIP_node_append_string_node(PVIPNode*node, PVIPNode*stuff);
-
 void PVIP_node_change_type(PVIPNode *node, PVIP_node_type_t type);
 
 void PVIP_node_dump_sexp(PVIPNode * node);
-
 
 /* string */
 PVIPString *PVIP_string_new();

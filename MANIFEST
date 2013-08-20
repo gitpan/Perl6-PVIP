@@ -54,6 +54,7 @@ pvip/src/main.c
 pvip/src/pvip.h
 pvip/src/pvip.y
 pvip/src/pvip_node.c
+pvip/src/pvip_private.h
 pvip/src/pvip_string.c
 pvip/t/01_simple.t
 pvip/t/02_parse.t
@@ -88,6 +89,12 @@ pvip/t/32_sub.t
 pvip/t/33_rand.t
 pvip/t/34_item_assignment_right.t
 pvip/t/35_end.t
+pvip/t/36_submethods.t
+pvip/t/37_so.t
+pvip/t/38_gcd.t
+pvip/t/39_my.t
+pvip/t/40_keep_undo.t
+pvip/t/41_number.t
 pvip/t/999_regression/001_isa_ok.t
 pvip/t/999_regression/002_expmod.t
 pvip/t/999_regression/003_mu.t

@@ -114,8 +114,7 @@ static void setup_pvip_const() {
     PConst(PVIP_NODE_TRUE);
     PConst(PVIP_NODE_TW_VM);
     PConst(PVIP_NODE_HAS);
-    PConst(PVIP_NODE_PRIVATE_ATTRIBUTE);
-    PConst(PVIP_NODE_PUBLIC_ATTRIBUTE);
+    PConst(PVIP_NODE_ATTRIBUTE_VARIABLE);
     PConst(PVIP_NODE_FUNCREF);
     PConst(PVIP_NODE_PATH);
     PConst(PVIP_NODE_TW_PACKAGE);
@@ -162,6 +161,16 @@ static void setup_pvip_const() {
     PConst(PVIP_NODE_NOT_DIVISIBLE_BY);
     PConst(PVIP_NODE_CONTAINER_IDENTITY);
     PConst(PVIP_NODE_Z);
+    PConst(PVIP_NODE_SUBMETHOD);
+    PConst(PVIP_NODE_BINDAND_MAKE_READONLY);
+    PConst(PVIP_NODE_LIST_ASSIGNMENT);
+    PConst(PVIP_NODE_TW_A);
+    PConst(PVIP_NODE_TW_B);
+    PConst(PVIP_NODE_TW_C);
+    PConst(PVIP_NODE_SO);
+    PConst(PVIP_NODE_GCD);
+    PConst(PVIP_NODE_KEEP);
+    PConst(PVIP_NODE_UNDO);
     PConst(PVIP_CATEGORY_UNKNOWN);
     PConst(PVIP_CATEGORY_STRING);
     PConst(PVIP_CATEGORY_INT);
