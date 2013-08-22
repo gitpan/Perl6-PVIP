@@ -8,7 +8,7 @@ builder/MyBuilder.pm
 cpanfile
 lib/Perl6/PVIP.pm
 lib/Perl6/PVIP.xs
-lib/Perl6/PVIP/Node.pod
+lib/Perl6/PVIP/Node.pm
 lib/Perl6/PVIP/_consts.pm
 lib/Perl6/const.h
 lib/Perl6/ppport.h
@@ -95,6 +95,11 @@ pvip/t/38_gcd.t
 pvip/t/39_my.t
 pvip/t/40_keep_undo.t
 pvip/t/41_number.t
+pvip/t/42_until.t
+pvip/t/43_method.t
+pvip/t/44_list.t
+pvip/t/45_augment.t
+pvip/t/46_or.t
 pvip/t/999_regression/001_isa_ok.t
 pvip/t/999_regression/002_expmod.t
 pvip/t/999_regression/003_mu.t

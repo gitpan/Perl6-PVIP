@@ -54,7 +54,7 @@ q|a'|
 --- code
 { 'baz' => 3, }
 --- expected
-(statements (hash (pair (string "baz") (int 3))))
+(statements (hash (list (pair (string "baz") (int 3)))))
 
 ===
 --- code
@@ -84,10 +84,22 @@ IO::Path
 --- code
 2i
 --- expected
-(statements (complex 2))
+(statements (complex 2.))
 
 ===
 --- code
 ::Foo
 --- expected
 (statements (ident "::Foo"))
+
+===
+--- code
+2.18503986326152i
+--- expected
+(statements (complex 2.18504))
+
+===
+--- code
+.5i
+--- expected
+(statements (complex 0.5))

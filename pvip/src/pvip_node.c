@@ -122,7 +122,7 @@ void PVIP_node_change_type(PVIPNode *node, PVIP_node_type_t type) {
 
 PVIPNode* PVIP_node_new_number(PVIP_node_type_t type, const char *str, size_t len) {
     PVIPNode *node = malloc(sizeof(PVIPNode));
-    assert(type == PVIP_NODE_NUMBER);
+    assert(PVIP_node_category(type) == PVIP_CATEGORY_NUMBER);
     node->type = type;
     node->nv = strtod(str, NULL);
     node->line_number = 0;
@@ -137,7 +137,11 @@ PVIPNode* PVIP_node_new_children(PVIPParserContext *parser, PVIP_node_type_t typ
     node->type = type;
     node->children.size  = 0;
     node->children.nodes = NULL;
-    node->line_number = parser->line_number;
+    if (parser->line_number_stack_size > 0) {
+        node->line_number = parser->line_number_stack[parser->line_number_stack_size-1];
+    } else {
+        node->line_number = parser->line_number;
+    }
     return node;
 }
 PVIPNode* PVIP_node_new_children1(PVIPParserContext* parser, PVIP_node_type_t type, PVIPNode* n1) {
@@ -206,9 +210,9 @@ PVIP_category_t PVIP_node_category(PVIP_node_type_t type) {
     case PVIP_NODE_UNICODE_CHAR:
         return PVIP_CATEGORY_STRING;
     case PVIP_NODE_INT:
-    case PVIP_NODE_COMPLEX:
         return PVIP_CATEGORY_INT;
     case PVIP_NODE_NUMBER:
+    case PVIP_NODE_COMPLEX:
         return PVIP_CATEGORY_NUMBER;
     default:
         return PVIP_CATEGORY_CHILDREN;

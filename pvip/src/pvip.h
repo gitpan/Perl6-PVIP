@@ -187,6 +187,11 @@ typedef enum {
     PVIP_NODE_GCD, /* gcd */
     PVIP_NODE_KEEP, /* KEEP */
     PVIP_NODE_UNDO, /* UNDO */
+    PVIP_NODE_NOW, /* now */
+    PVIP_NODE_UNTIL, /* until */
+    PVIP_NODE_TIME, /* time */
+    PVIP_NODE_AUGMENT, /* augment */
+    PVIP_NODE_IS_COPY, /* is copy */
 } PVIP_node_type_t;
 
 typedef enum {
