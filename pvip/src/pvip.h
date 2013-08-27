@@ -112,7 +112,7 @@ typedef enum {
     PVIP_NODE_INPLACE_CONCAT_S,
     PVIP_NODE_REPEAT_S,
     PVIP_NODE_INPLACE_REPEAT_S,
-    PVIP_NODE_UNARY_TILDE,
+    PVIP_NODE_STRINGIFY, /* prefix:<~> */
     PVIP_NODE_TRY,
     PVIP_NODE_REF,
     PVIP_NODE_MULTI,
@@ -192,6 +192,19 @@ typedef enum {
     PVIP_NODE_TIME, /* time */
     PVIP_NODE_AUGMENT, /* augment */
     PVIP_NODE_IS_COPY, /* is copy */
+    PVIP_NODE_LEG, /* leg operator */
+    PVIP_NODE_NEED, /* need */
+    PVIP_NODE_INTEGER_DIVISION, /* div */
+    PVIP_NODE_LCM, /* lcm */
+    PVIP_NODE_PACKAGE, /* package */
+    PVIP_NODE_MINMAX, /* minmax */
+    PVIP_NODE_SEQUENCE, /* ... */
+    PVIP_NODE_CONTEXTUALIZER_SCALAR, /* $() */
+    PVIP_NODE_CONTEXTUALIZER_ARRAY, /* @() */
+    PVIP_NODE_CONTEXTUALIZER_HASH, /* %() */
+    PVIP_NODE_TW_TMPDIR, /* $*TMPDIR */
+    PVIP_NODE_IS_RW, /* is rw */
+    PVIP_NODE_IS_REF, /* is ref */
 } PVIP_node_type_t;
 
 typedef enum {
@@ -201,6 +214,13 @@ typedef enum {
     PVIP_CATEGORY_NUMBER,
     PVIP_CATEGORY_CHILDREN
 } PVIP_category_t;
+
+/* bit flags for `sub ($x is rw) { }` etc. */
+typedef enum {
+    PVIP_FUNC_ATTR_IS_COPY = 1,
+    PVIP_FUNC_ATTR_IS_RW   = 2,
+    PVIP_FUNC_ATTR_IS_REF  = 4,
+} PVIP_func_attr_t;
 
 typedef struct {
     char *buf;

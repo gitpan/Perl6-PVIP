@@ -21,6 +21,12 @@
     } while (0)
 #define LEAVE do { assert(G->data.line_number_stack_size> 0); G->data.line_number_stack_size--; } while (0)
 
+#define CHILDREN1(t,a)   PVIP_node_new_children1(&(G->data),t,a)
+#define CHILDREN2(t,a,b) PVIP_node_new_children2(&(G->data),t,a,b)
+#define CHILDREN3(t,a,b,c) PVIP_node_new_children3(&(G->data),t,a,b,c)
+#define CHILDREN4(t,a,b,c,d) PVIP_node_new_children4(&(G->data),t,a,b,c,d)
+#define CHILDREN5(t,a,b,c,d,e) PVIP_node_new_children5(&(G->data),t,a,b,c,d,e)
+
 /*
 
 
@@ -121,6 +127,7 @@ statement =
             | module_stmt
             | multi_method_stmt
             | die_stmt
+            | package_stmt
             | has_stmt
             | '...' { $$ = PVIP_node_new_children(&(G->data), PVIP_NODE_STUB); }
             | funcdef - ';'*
@@ -141,8 +148,14 @@ normal_or_postfix_stmt =
         | ( ' '+ 'unless' - cond_unless:expr - eat_terminator ) { $$ = PVIP_node_new_children2(&(G->data), PVIP_NODE_UNLESS, cond_unless, n); }
         | ( ' '+ 'for' - cond_for:expr - eat_terminator ) { $$ = PVIP_node_new_children2(&(G->data), PVIP_NODE_FOR, cond_for, n); }
         | ( ' '+ 'while' - cond_for:expr - eat_terminator ) { $$ = PVIP_node_new_children2(&(G->data), PVIP_NODE_WHILE, cond_for, n); }
+        | ( ' '+ 'until' - cond_for:expr - eat_terminator ) { $$ = PVIP_node_new_children2(&(G->data), PVIP_NODE_UNTIL, cond_for, n); }
         | ( - eat_terminator ) { $$=n; }
     )
+
+package_stmt =
+    'package' ws+ pkg:pkg_name - blk:block {
+        $$ = CHILDREN2(PVIP_NODE_PACKAGE, pkg, blk);
+    }
 
 enum_stmt =
     'my' ws+ 'enum' ws+ i:ident - e:expr { $$ = PVIP_node_new_children1(&(G->data), PVIP_NODE_MY, PVIP_node_new_children2(&(G->data), PVIP_NODE_ENUM, i, e)); }
@@ -173,7 +186,7 @@ multi_method_stmt =
 
 method_stmt =
     { p=NULL; } 'method' ws - i:ident ( - '(' - p:params? - ')' )? - b:block { $$ = PVIP_node_new_children3(&(G->data), PVIP_NODE_METHOD, i, MAYBE(p), b); }
-    | { p=NULL; } 'submethod' ws - i:ident - '(' - p:params? - ')' - b:block { $$ = PVIP_node_new_children3(&(G->data), PVIP_NODE_SUBMETHOD, i, MAYBE(p), b); }
+    | { p=NULL; } 'submethod' ws - i:ident ( - '(' - p:params? - ')' )? - b:block { $$ = PVIP_node_new_children3(&(G->data), PVIP_NODE_SUBMETHOD, i, MAYBE(p), b); }
 
 normal_stmt = return_stmt | last_stmt | next_stmt | expr
 
@@ -196,6 +209,7 @@ use_stmt =
         } '>'
     )?
     eat_terminator
+    | 'need' ws+ pkg:pkg_name eat_terminator { $$ = PVIP_node_new_children1(&(G->data), PVIP_NODE_NEED, pkg); }
 
 pkg_name = < [a-zA-Z] [a-zA-Z0-9_]* ( '::' [a-zA-Z0-9_]+ )* > {
     $$ = PVIP_node_new_string(PVIP_NODE_IDENT, yytext, yyleng);
@@ -300,8 +314,17 @@ list_prefix_expr =
 
 list_infix_expr =
     a:comma_operator_expr {$$=a;} (
-        - 'Z' - b:comma_operator_expr {
+        - 'Z' ![-_a-zA-Z0-9] - b:comma_operator_expr {
             $$ = PVIP_node_new_children2(&(G->data), PVIP_NODE_Z, a, b);
+            a=$$;
+        }
+        | - 'minmax' ![-_a-zA-Z0-9] - b:comma_operator_expr {
+            $$ = PVIP_node_new_children2(&(G->data), PVIP_NODE_MINMAX, a, b);
+            a=$$;
+        }
+        # the sequence operator
+        | - '...' ![-._a-zA-Z0-9] - b:comma_operator_expr {
+            $$ = PVIP_node_new_children2(&(G->data), PVIP_NODE_SEQUENCE, a, b);
             a=$$;
         }
     )*
@@ -316,10 +339,20 @@ reduce_operator =
 
 lvalue =
     my
+    | method_postfix_expr
     | v:variable { $$=v; } (
         '[' - e:expr - ']' { $$=PVIP_node_new_children2(&(G->data), PVIP_NODE_ATPOS, v, e); }
         | '<' - k:atkey_key - '>' {  $$ = PVIP_node_new_children2(&(G->data), PVIP_NODE_ATKEY, v, k); }
     )?
+    | '(' - a:lvalue - ( ',' - b:lvalue {
+        if (a->type == PVIP_NODE_LIST) {
+            PVIP_node_push_child(a, b);
+            $$=a;
+        } else {
+            a = CHILDREN2(PVIP_NODE_LIST, a, b);
+            $$=a;
+        }
+    } )* - ')'
 
 comma_operator_expr = a:loose_unary_expr { $$=a; } ( - ',' - b:loose_unary_expr {
         if (a->type==PVIP_NODE_LIST) {
@@ -401,6 +434,7 @@ structural_infix_expr =
     a1:named_unary_expr (
         - '..' !'.' - a2:named_unary_expr { $$=PVIP_node_new_children2(&(G->data), PVIP_NODE_RANGE, a1, a2); a1=$$; }
         | - 'cmp' ![a-z] - a2:named_unary_expr { $$=PVIP_node_new_children2(&(G->data), PVIP_NODE_CMP, a1, a2); a1=$$; }
+        | - 'leg' ![a-z] - a2:named_unary_expr { $$=PVIP_node_new_children2(&(G->data), PVIP_NODE_LEG, a1, a2); a1=$$; }
         | - '<=>' - a2:named_unary_expr { $$=PVIP_node_new_children2(&(G->data), PVIP_NODE_NUM_CMP, a1, a2); a1=$$; }
     )? { $$=a1; }
 
@@ -527,6 +561,14 @@ multiplicative_expr =
             $$ = PVIP_node_new_children2(&(G->data), PVIP_NODE_GCD, l, r);
             l = $$;
         }
+        | - 'lcm' ![=a-zA-Z0-9] - r:symbolic_unary {
+            $$ = PVIP_node_new_children2(&(G->data), PVIP_NODE_LCM, l, r);
+            l = $$;
+        }
+        | - 'div' ![=a-zA-Z0-9] - r:symbolic_unary {
+            $$ = PVIP_node_new_children2(&(G->data), PVIP_NODE_INTEGER_DIVISION, l, r);
+            l = $$;
+        }
     )* {
         $$ = l;
     }
@@ -537,7 +579,7 @@ symbolic_unary =
     | '-' !'-' - f1:exponentiation_expr { $$ = PVIP_node_new_children1(&(G->data), PVIP_NODE_UNARY_MINUS, f1); }
     | '!' - f1:symbolic_unary { $$ = PVIP_node_new_children1(&(G->data), PVIP_NODE_NOT, f1); }
     | '+^' - f1:exponentiation_expr { $$ = PVIP_node_new_children1(&(G->data), PVIP_NODE_UNARY_BITWISE_NEGATION, f1); }
-    | '~' - f1:exponentiation_expr { $$ = PVIP_node_new_children1(&(G->data), PVIP_NODE_UNARY_TILDE, f1); }
+    | '~' - f1:exponentiation_expr { $$ = PVIP_node_new_children1(&(G->data), PVIP_NODE_STRINGIFY, f1); }
     | '?' - f1:exponentiation_expr { $$ = PVIP_node_new_children1(&(G->data), PVIP_NODE_UNARY_BOOLEAN, f1); }
     | '^' - f1:exponentiation_expr { $$ = PVIP_node_new_children1(&(G->data), PVIP_NODE_UNARY_UPTO, f1); }
     | '|' !'|' - f1:exponentiation_expr { $$ = PVIP_node_new_children1(&(G->data), PVIP_NODE_UNARY_FLATTEN_OBJECT, f1); }
@@ -621,6 +663,7 @@ term =
     | 'm:P5/./' { $$ = PVIP_node_new_children(&(G->data), PVIP_NODE_NOP); }
     | regexp
     | !reserved ident
+    | < 'class' > { $$ = PVIP_node_new_string(PVIP_NODE_IDENT, yytext, yyleng); }
     | '\\' t:term { $$ = PVIP_node_new_children1(&(G->data), PVIP_NODE_REF, t); }
     | '(' - ')' { $$ = PVIP_node_new_children(&(G->data), PVIP_NODE_LIST); }
     | ':' < key:ident > '<' value:ident '>' {
@@ -652,6 +695,9 @@ term =
     | 'rand' ![-a-zA-Z0-9] { $$ = PVIP_node_new_children(&(G->data), PVIP_NODE_RAND); }
     | 'now' ![-a-zA-Z0-9] { $$ = PVIP_node_new_children(&(G->data), PVIP_NODE_NOW); }
     | 'time' ![-a-zA-Z0-9] { $$ = PVIP_node_new_children(&(G->data), PVIP_NODE_TIME); }
+    | { e=NULL; } '$(' - ( e:expr - )? ')' { $$ = CHILDREN1(PVIP_NODE_CONTEXTUALIZER_SCALAR, MAYBE(e)); }
+    | { e=NULL; } '@(' - ( e:expr - )? ')' { $$ = CHILDREN1(PVIP_NODE_CONTEXTUALIZER_ARRAY,  MAYBE(e)); }
+    | { e=NULL; } '%(' - ( e:expr - )? ')' { $$ = CHILDREN1(PVIP_NODE_CONTEXTUALIZER_HASH,   MAYBE(e)); }
 
 enum =
     'enum' ws+ q:qw { $$ = PVIP_node_new_children2(&(G->data), PVIP_NODE_ENUM, PVIP_node_new_children(&(G->data), PVIP_NODE_NOP), q); }
@@ -687,6 +733,7 @@ twvars =
     | '$^a' { $$ = PVIP_node_new_children(&(G->data), PVIP_NODE_TW_A); }
     | '$^b' { $$ = PVIP_node_new_children(&(G->data), PVIP_NODE_TW_B); }
     | '$^c' { $$ = PVIP_node_new_children(&(G->data), PVIP_NODE_TW_C); }
+    | '$*TMPDIR' { $$ = PVIP_node_new_children(&(G->data), PVIP_NODE_TW_TMPDIR); }
 
 reserved = ( 'my' | 'our' | 'until' | 'while' | 'unless' | 'if' | 'role' | 'class' | 'try' | 'has' | 'sub' | 'cmp' | 'enum' | 'time' | 'now' | 'rand' | 'END' | 'BEGIN' | 'Z' | 'so' | 'not' | 'andthen' | 'and' | 'or' ) ![-A-Za-z0-9]
 
@@ -802,17 +849,33 @@ param =
     '*' v:array_var {
         $$ = PVIP_node_new_children1(&(G->data), PVIP_NODE_PARAM, PVIP_node_new_children1(&(G->data), PVIP_NODE_VARGS, v));
     }
-    | { i=NULL; d=NULL; is_copy=NULL; }
+    | { i=NULL; d=NULL; is_copy=NULL; is_rw=NULL; is_ref=NULL; }
     (
         ( i:ident ws+ )?
         v:term
-        ( - d:param_defaults )?
-        ( - is_copy:is_copy )?
+        (
+              - d:param_defaults
+            | - is_copy:is_copy
+            | - is_rw:is_rw
+            | - is_ref:is_ref
+        )*
     ) {
-        $$ = PVIP_node_new_children4(&(G->data), PVIP_NODE_PARAM, MAYBE(i), v, MAYBE(d), MAYBE(is_copy));
+        int attr = 0;
+        if (is_copy) {
+            attr |= PVIP_FUNC_ATTR_IS_COPY;
+        }
+        if (is_rw) {
+            attr |= PVIP_FUNC_ATTR_IS_RW;
+        }
+        if (is_ref) {
+            attr |= PVIP_FUNC_ATTR_IS_REF;
+        }
+        $$ = CHILDREN4(PVIP_NODE_PARAM, MAYBE(i), v, MAYBE(d), PVIP_node_new_int(PVIP_NODE_INT, attr));
     }
 
 is_copy = 'is' ws+ 'copy' ![-a-zA-Z0-9_] { $$ = PVIP_node_new_children(&(G->data), PVIP_NODE_IS_COPY); }
+is_rw = 'is' ws+ 'rw' ![-a-zA-Z0-9_] { $$ = PVIP_node_new_children(&(G->data), PVIP_NODE_IS_RW); }
+is_ref = 'is' ws+ 'ref' ![-a-zA-Z0-9_] { $$ = PVIP_node_new_children(&(G->data), PVIP_NODE_IS_REF); }
 
 param_defaults =
     '=' - e:expr { $$=e; }
@@ -903,7 +966,7 @@ integer =
     | '0d' <[0-9]+> {
     $$ = PVIP_node_new_intf(PVIP_NODE_INT, yytext, yyleng, 10);
 }
-    | '0x' <[0-9a-f_]+> {
+    | '0x' <[0-9a-fA-F_]+> {
     $$ = PVIP_node_new_intf(PVIP_NODE_INT, yytext, yyleng, 16);
 }
     | '0o' <[0-7]+> {
@@ -929,7 +992,12 @@ dq_string = s:dq_string_start { s = PVIP_node_new_string(PVIP_NODE_STRING, "", 0
         "\n" { G->data.line_number++; s=PVIP_node_append_string(&(G->data), s, "\n", 1); }
         | "{" - e:statementlist - "}" { s=PVIP_node_append_string_node(PARSER, s, e); }
         | "{" - "}" { s=PVIP_node_append_string(&(G->data), s, "", 0); }
-        | < [^"{\\\n$]+ > { s=PVIP_node_append_string(&(G->data), s, yytext, yyleng); }
+        | < [^"{\\\n$%]+ > { s=PVIP_node_append_string(&(G->data), s, yytext, yyleng); }
+        | h:variable '<' - k:atkey_key - '>' {  s=PVIP_node_append_string_node(&(G->data), s, CHILDREN2(PVIP_NODE_ATKEY, h, k)); }
+        # %hash{do_a}
+        | h:variable '{' - k:expr - '}' {  s=PVIP_node_append_string_node(&(G->data), s, CHILDREN2(PVIP_NODE_ATKEY, h, k)); }
+        | h:variable ( '{' - '}' | '<' - '>' ) {  s=PVIP_node_append_string_node(&(G->data), s, CHILDREN1(PVIP_NODE_STRINGIFY, h)); }
+        | '%' { s=PVIP_node_append_string(&(G->data), s, "%", 1); }
         | v:variable { s=PVIP_node_append_string_node(PARSER, s, v); }
         | esc 'a' { s=PVIP_node_append_string(&(G->data), s, "\a", 1); }
         | esc 'b' { s=PVIP_node_append_string(&(G->data), s, "\b", 1); }
@@ -949,7 +1017,7 @@ dq_string = s:dq_string_start { s = PVIP_node_new_string(PVIP_NODE_STRING, "", 0
         ) {
             s=PVIP_node_append_string_from_hex(PARSER, s, yytext, yyleng);
         }
-        | esc 'o' < '0'? [0-7] [0-7] > {
+        | esc 'o' < ( [0-7] [0-7] | '0' [0-7] [0-7] ) > {
             s=PVIP_node_append_string_from_oct(PARSER, s, yytext, yyleng);
         }
         | esc 'o['

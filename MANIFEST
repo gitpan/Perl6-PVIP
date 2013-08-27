@@ -100,6 +100,16 @@ pvip/t/43_method.t
 pvip/t/44_list.t
 pvip/t/45_augment.t
 pvip/t/46_or.t
+pvip/t/47_leg.t
+pvip/t/48_need.t
+pvip/t/49_div.t
+pvip/t/50_lcm.t
+pvip/t/51_package.t
+pvip/t/52_minmax.t
+pvip/t/53_sequence.t
+pvip/t/54_assign.t
+pvip/t/55_tmpdir.t
+pvip/t/56_class.t
 pvip/t/999_regression/001_isa_ok.t
 pvip/t/999_regression/002_expmod.t
 pvip/t/999_regression/003_mu.t
