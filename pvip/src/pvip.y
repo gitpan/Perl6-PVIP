@@ -21,6 +21,7 @@
     } while (0)
 #define LEAVE do { assert(G->data.line_number_stack_size> 0); G->data.line_number_stack_size--; } while (0)
 
+#define CHILDREN(t)   PVIP_node_new_children(&(G->data),t)
 #define CHILDREN1(t,a)   PVIP_node_new_children1(&(G->data),t,a)
 #define CHILDREN2(t,a,b) PVIP_node_new_children2(&(G->data),t,a,b)
 #define CHILDREN3(t,a,b,c) PVIP_node_new_children3(&(G->data),t,a,b,c)
@@ -92,10 +93,10 @@ static char PVIP_input(char *buf, YY_XTYPE D) {
 
 %}
 
-comp_init = BOM? e:statementlist - end-of-file {
+comp_init = BOM? pod? e:statementlist - end-of-file {
     $$ = (G->data.root = e);
 }
-    | BOM? end-of-file { $$ = (G->data.root = PVIP_node_new_children(&(G->data), PVIP_NODE_NOP)); }
+    | BOM? pod? ws* end-of-file { $$ = (G->data.root = PVIP_node_new_children(&(G->data), PVIP_NODE_NOP)); }
 
 BOM='\357' '\273' '\277'
 
@@ -166,8 +167,8 @@ last_stmt = 'last' { $$ = PVIP_node_new_children(&(G->data), PVIP_NODE_LAST); }
 next_stmt = 'next' { $$ = PVIP_node_new_children(&(G->data), PVIP_NODE_NEXT); }
 
 has_stmt =
-    'has' ws+ v:attr_vars eat_terminator {
-        $$ = PVIP_node_new_children1(&(G->data), PVIP_NODE_HAS, v);
+    {default=NULL; } 'has' ws+ v:attr_vars ( -  '=' - default:expr )? eat_terminator {
+        $$ = CHILDREN2(PVIP_NODE_HAS, v, MAYBE(default));
     }
 
 # $.var
@@ -668,6 +669,8 @@ term =
     | lambda
     | it_method
     | enum
+    | 'pi' ![-a-zA-Z0-9_] { $$ = CHILDREN(PVIP_NODE_PI); }
+    | 'e' ![-a-zA-Z0-9_] { $$ = CHILDREN(PVIP_NODE_E); }
     | 'try' ws - b:block { $$ = PVIP_node_new_children1(&(G->data), PVIP_NODE_TRY, b); }
     | 'try' ws+ b:expr { $$ = PVIP_node_new_children1(&(G->data), PVIP_NODE_TRY, b); }
     | perl5_regexp
@@ -747,7 +750,7 @@ twvars =
     | '$^c' { $$ = PVIP_node_new_children(&(G->data), PVIP_NODE_TW_C); }
     | '$*TMPDIR' { $$ = PVIP_node_new_children(&(G->data), PVIP_NODE_TW_TMPDIR); }
 
-reserved = ( 'my' | 'our' | 'until' | 'while' | 'unless' | 'if' | 'role' | 'class' | 'try' | 'has' | 'sub' | 'cmp' | 'enum' | 'time' | 'now' | 'rand' | 'END' | 'BEGIN' | 'Z' | 'so' | 'not' | 'andthen' | 'and' | 'or' ) ![-A-Za-z0-9]
+reserved = ( 'pi' | 'my' | 'our' | 'until' | 'while' | 'unless' | 'if' | 'role' | 'class' | 'try' | 'has' | 'sub' | 'cmp' | 'enum' | 'e' | 'time' | 'now' | 'rand' | 'END' | 'BEGIN' | 'Z' | 'so' | 'not' | 'andthen' | 'and' | 'or' ) ![-A-Za-z0-9]
 
 role =
     'role' ws+ i:ident - b:block { $$ = PVIP_node_new_children2(&(G->data), PVIP_NODE_ROLE, i, b); }
@@ -1121,11 +1124,18 @@ comment =
 
 # white space
 ws = 
-    '\n=begin ' [a-z]+ '\n' { NEWLINE; } ( !'=end ' [^\n]* '\n' { NEWLINE; } )* '=end ' [a-z]+ '\n' { NEWLINE; }
+    '\n' pod
     | '\n=begin END\n' .* | ' ' | '\f' | '\v' | '\t' | '\205' | '\240'
     | '\n=END\n' .*
     | end-of-line
     | comment
+
+pod =
+  (
+      '=begin ' [a-z]+ ' '* '\n' { NEWLINE; }
+      ( !'=end ' [^\n]* '\n' { NEWLINE; } )*
+      '=end ' [a-z]+ ' '* '\n' { NEWLINE; }
+  )
 
 - = ws*
 

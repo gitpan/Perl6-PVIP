@@ -110,10 +110,14 @@ pvip/t/53_sequence.t
 pvip/t/54_assign.t
 pvip/t/55_tmpdir.t
 pvip/t/56_class.t
+pvip/t/57_has.t
+pvip/t/58_pod.t
+pvip/t/59_e.t
 pvip/t/999_regression/001_isa_ok.t
 pvip/t/999_regression/002_expmod.t
 pvip/t/999_regression/003_mu.t
 pvip/t/ParserTest.pm
+pvip/t/Util.pm
 pvip/t/lib/Data/SExpression/Lite.pm
 pvip/t/sexp.t
 t/00_compile.t
